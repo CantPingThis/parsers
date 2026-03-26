@@ -1,0 +1,30 @@
+Value AP_NAME (\S+)
+Value ETHERNET_MAC ([0-9a-fA-F]{4}\.[0-9a-fA-F]{4}\.[0-9a-fA-F]{4})
+Value RADIO_MAC ([0-9a-fA-F]{4}\.[0-9a-fA-F]{4}\.[0-9a-fA-F]{4})
+Value AP_UP_DAYS (\d+)
+Value AP_UP_HOURS (\d+)
+Value AP_UP_MINUTES (\d+)
+Value AP_UP_SECONDS (\d+)
+Value ASSOC_UP_DAYS (\d+)
+Value ASSOC_UP_HOURS (\d+)
+Value ASSOC_UP_MINUTES (\d+)
+Value ASSOC_UP_SECONDS (\d+)
+
+Start
+  # Rule 1: AP uptime has days, Assoc uptime has days
+  ^(${AP_NAME})\s+(${ETHERNET_MAC})\s+(${RADIO_MAC})\s+${AP_UP_DAYS}\s+days?\s+${AP_UP_HOURS}\s+hours?\s+${AP_UP_MINUTES}\s+minutes?\s+${AP_UP_SECONDS}\s+seconds?\s+${ASSOC_UP_DAYS}\s+days?\s+${ASSOC_UP_HOURS}\s+hours?\s+${ASSOC_UP_MINUTES}\s+minutes?\s+${ASSOC_UP_SECONDS}\s+seconds? -> Record
+
+  # Rule 2: AP uptime has days, Assoc uptime has hours (no days)
+  ^(${AP_NAME})\s+(${ETHERNET_MAC})\s+(${RADIO_MAC})\s+${AP_UP_DAYS}\s+days?\s+${AP_UP_HOURS}\s+hours?\s+${AP_UP_MINUTES}\s+minutes?\s+${AP_UP_SECONDS}\s+seconds?\s+${ASSOC_UP_HOURS}\s+hours?\s+${ASSOC_UP_MINUTES}\s+minutes?\s+${ASSOC_UP_SECONDS}\s+seconds? -> Record
+
+  # Rule 3: AP uptime has days, Assoc uptime only minutes+seconds (recent CAPWAP flap)
+  ^(${AP_NAME})\s+(${ETHERNET_MAC})\s+(${RADIO_MAC})\s+${AP_UP_DAYS}\s+days?\s+${AP_UP_HOURS}\s+hours?\s+${AP_UP_MINUTES}\s+minutes?\s+${AP_UP_SECONDS}\s+seconds?\s+${ASSOC_UP_MINUTES}\s+minutes?\s+${ASSOC_UP_SECONDS}\s+seconds? -> Record
+
+  # Rule 4: AP uptime has no days (recent reboot), Assoc has hours
+  ^(${AP_NAME})\s+(${ETHERNET_MAC})\s+(${RADIO_MAC})\s+${AP_UP_HOURS}\s+hours?\s+${AP_UP_MINUTES}\s+minutes?\s+${AP_UP_SECONDS}\s+seconds?\s+${ASSOC_UP_HOURS}\s+hours?\s+${ASSOC_UP_MINUTES}\s+minutes?\s+${ASSOC_UP_SECONDS}\s+seconds? -> Record
+
+  # Rule 5: AP uptime has no days, Assoc only minutes+seconds
+  ^(${AP_NAME})\s+(${ETHERNET_MAC})\s+(${RADIO_MAC})\s+${AP_UP_HOURS}\s+hours?\s+${AP_UP_MINUTES}\s+minutes?\s+${AP_UP_SECONDS}\s+seconds?\s+${ASSOC_UP_MINUTES}\s+minutes?\s+${ASSOC_UP_SECONDS}\s+seconds? -> Record
+
+  # Skip headers, separator lines, blank lines
+  ^. -> Continue
